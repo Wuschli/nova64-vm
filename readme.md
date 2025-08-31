@@ -70,3 +70,18 @@ The 4 bytes of an instruction are stored in memory in the following way: `<OPCOD
 
 ## Notes on TOP
 
+`TOP` (0xFFFFFF) is a **reserved stack alias**. When used in any instruction expecting an address or port, the CPU will pop the top value from the stack to use as the operand:
+
+- `JMP TOP` → Jump to address on stack  
+- `CALL TOP` → Call subroutine at address on stack  
+- `FETCH TOP` / `STORE TOP` → Memory indirect addressing  
+- `IN TOP` / `OUT TOP` → Dynamic I/O  
+- `WAIT TOP` → Wait on port specified on stack  
+- `SPAWN TOP` → Spawn task at stack address  
+
+This provides a fully flexible, stack-driven mechanism for dynamic code execution and I/O.
+
+---
+
+**End of Document**  
+© 1991 TechCorp Systems Division – All rights reserved.
