@@ -4,6 +4,11 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"log"
+	"maps"
+	"slices"
+
+	"github.com/rotisserie/eris"
 )
 
 var instructionMap = map[byte]func(*nova64Cpu, uint32) error{
@@ -35,22 +40,27 @@ var instructionMap = map[byte]func(*nova64Cpu, uint32) error{
 	0x70: spawn, // SPAWN
 	0x71: yield, // YIELD
 	0x72: wait,  // WAIT
-	0xFF: halt,  // HALT
+	0xFF: kill,  // KILL
 }
 
 type nova64Cpu struct {
-	Tasks      []*nova64Task
-	Ports      map[uint32]Port
-	Ram        []uint32
-	Labels     map[string]uint32
-	ActiveTask *nova64Task
-	StackSize  uint32
-	Halted     bool
+	Tasks                      []*nova64Task
+	Ports                      map[uint32]Port
+	Ram                        []uint32
+	Labels                     map[string]uint32
+	StackSize                  uint32
+	TicksPerTask               int32
+	Halted                     bool
+	activeTaskIndex            int
+	ticksRemainingOnActiveTask int32
+	usedStackOffsets           map[*nova64Task]uint32
+	nextTaskId                 uint32
 }
 
 type nova64Task struct {
-	IP, SP, Flags, Waiting, stackBase uint32
-	X                                 int32
+	ID, IP, SP, Flags, Waiting, stackBase uint32
+	X                                     int32
+	killed                                bool
 }
 
 type Port interface {
@@ -61,10 +71,12 @@ type Port interface {
 
 func NewCpu(memory uint32) nova64Cpu {
 	cpu := nova64Cpu{
-		Tasks:     make([]*nova64Task, 0),
-		Ports:     make(map[uint32]Port),
-		Ram:       make([]uint32, memory/4),
-		StackSize: 512,
+		Tasks:            make([]*nova64Task, 0),
+		Ports:            make(map[uint32]Port),
+		Ram:              make([]uint32, memory/4),
+		StackSize:        512,
+		TicksPerTask:     512,
+		usedStackOffsets: make(map[*nova64Task]uint32, 1),
 	}
 	return cpu
 }
@@ -75,76 +87,126 @@ func (cpu *nova64Cpu) Load(data []byte) error {
 		return err
 	}
 	cpu.Labels = labels
-	cpu.Tasks = make([]*nova64Task, 1)
-	cpu.Tasks[0] = &nova64Task{
-		IP:        0,
-		stackBase: uint32(len(cpu.Ram)) - uint32(cpu.StackSize),
-		SP:        uint32(len(cpu.Ram)) - uint32(cpu.StackSize) - 1,
-		X:         0,
-		Flags:     0,
-		Waiting:   0,
-	}
-	cpu.ActiveTask = cpu.Tasks[0]
+	cpu.SpawnTask(0)
 	return nil
 }
 
 func (cpu *nova64Cpu) Tick() {
-	if cpu.Halted {
+	if cpu.Halted || cpu.doTaskScheduling() {
 		return
 	}
-	task := cpu.ActiveTask
+	task := cpu.ActiveTask()
+
+	if cpu.ActiveTask().Waiting != 0 {
+		return
+	}
+
 	op := cpu.Ram[task.IP]
 	opCode := byte(op & 0xFF)
 	operand := (op >> 8) & 0x00FFFFFF
 	instructionFunc := instructionMap[opCode]
 	err := instructionFunc(cpu, operand)
 	if err != nil {
-		panic(err)
+		log.Fatalln(eris.ToString(err, true))
+		cpu.ActiveTask().killed = true
+		// panic(err)
 	}
 
 	task.IP++
 }
+
+func (cpu *nova64Cpu) doTaskScheduling() bool {
+	cpu.ticksRemainingOnActiveTask--
+	if cpu.ticksRemainingOnActiveTask < 0 || (cpu.ActiveTask() != nil && (cpu.ActiveTask().Waiting != 0 || cpu.ActiveTask().killed)) {
+
+		if cpu.ActiveTask() != nil && cpu.ActiveTask().killed {
+			delete(cpu.usedStackOffsets, cpu.ActiveTask())
+			cpu.Tasks = slices.Delete(cpu.Tasks, cpu.activeTaskIndex, cpu.activeTaskIndex+1)
+		} else {
+			cpu.activeTaskIndex++
+			cpu.activeTaskIndex %= len(cpu.Tasks)
+			cpu.ticksRemainingOnActiveTask = cpu.TicksPerTask
+		}
+
+		if len(cpu.Tasks) == 0 {
+			cpu.Halted = true
+			return true
+		}
+	}
+	return false
+}
+
+func (cpu *nova64Cpu) ActiveTask() *nova64Task {
+	return cpu.Tasks[cpu.activeTaskIndex]
+}
+
+func (cpu *nova64Cpu) SpawnTask(ip uint32) {
+	usedOffsets := slices.Sorted(maps.Values(cpu.usedStackOffsets))
+	offset := uint32(0)
+
+	for _, i := range usedOffsets {
+		if offset == i {
+			offset = i + 1
+		}
+	}
+
+	task := nova64Task{
+		ID:        cpu.nextTaskId,
+		IP:        ip,
+		stackBase: uint32(len(cpu.Ram)) - uint32(cpu.StackSize)*(offset+1),
+		SP:        uint32(len(cpu.Ram)) - uint32(cpu.StackSize)*(offset+1) - 1,
+	}
+
+	cpu.nextTaskId++
+	cpu.Tasks = append(cpu.Tasks, &task)
+	cpu.usedStackOffsets[&task] = offset
+}
+
 func (cpu *nova64Cpu) push(value uint32) error {
-	cpu.ActiveTask.SP++
-	if cpu.ActiveTask.SP >= cpu.ActiveTask.stackBase+cpu.StackSize {
+	cpu.ActiveTask().SP++
+	if cpu.ActiveTask().SP >= cpu.ActiveTask().stackBase+cpu.StackSize {
 		return errors.New("StackOverflow")
 	}
-	cpu.Ram[cpu.ActiveTask.SP] = value
+	cpu.Ram[cpu.ActiveTask().SP] = value
 	return nil
 }
 
 func (cpu *nova64Cpu) drop() error {
-	if cpu.ActiveTask.SP < cpu.ActiveTask.stackBase {
+	if cpu.ActiveTask().SP < cpu.ActiveTask().stackBase {
 		return errors.New("StackUnderflow")
 	}
-	cpu.ActiveTask.SP--
+	cpu.ActiveTask().SP--
 	return nil
 }
 
 func (cpu *nova64Cpu) pop() (uint32, error) {
-	if cpu.ActiveTask.SP < cpu.ActiveTask.stackBase {
+	if cpu.ActiveTask().SP < cpu.ActiveTask().stackBase {
 		return 0, errors.New("StackUnderflow")
 	}
-	value := cpu.Ram[cpu.ActiveTask.SP]
-	cpu.ActiveTask.SP--
+	value := cpu.Ram[cpu.ActiveTask().SP]
+	cpu.ActiveTask().SP--
 	return value, nil
 }
 
 func (cpu *nova64Cpu) dup(offset uint32) error {
-	if cpu.ActiveTask.SP-offset < cpu.ActiveTask.stackBase {
+	if cpu.ActiveTask().SP-offset < cpu.ActiveTask().stackBase {
 		return errors.New("StackUnderflow")
 	}
-	return cpu.push(cpu.Ram[cpu.ActiveTask.stackBase-1-offset])
+	return cpu.push(cpu.Ram[cpu.ActiveTask().stackBase-1-offset])
 }
 
 func (cpu *nova64Cpu) swap() error {
-	if cpu.ActiveTask.SP-1 < cpu.ActiveTask.stackBase {
+	if cpu.ActiveTask().SP-1 < cpu.ActiveTask().stackBase {
 		return errors.New("StackUnderflow")
 	}
-	temp := cpu.Ram[cpu.ActiveTask.SP]
-	cpu.Ram[cpu.ActiveTask.SP] = cpu.Ram[cpu.ActiveTask.SP-1]
-	cpu.Ram[cpu.ActiveTask.SP-1] = temp
+	temp := cpu.Ram[cpu.ActiveTask().SP]
+	cpu.Ram[cpu.ActiveTask().SP] = cpu.Ram[cpu.ActiveTask().SP-1]
+	cpu.Ram[cpu.ActiveTask().SP-1] = temp
 	return nil
+}
+
+func (cpu *nova64Cpu) yield() {
+	cpu.ticksRemainingOnActiveTask = 0
 }
 
 func parseImage(data []byte, ram []uint32) (map[string]uint32, error) {

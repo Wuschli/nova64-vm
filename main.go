@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -23,20 +24,23 @@ func main() {
 	}
 
 	ticker := time.NewTicker(time.Microsecond)
-	done := make(chan bool)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	go func() {
 		for {
 			select {
-			case <-done:
+			case <-ctx.Done():
 				return
 			case <-ticker.C:
 				cpu.Tick()
+				if cpu.Halted {
+					cancel()
+				}
 			}
 		}
 	}()
 
-	time.Sleep(500 * time.Millisecond)
+	<-ctx.Done()
 	ticker.Stop()
-	done <- true
 }

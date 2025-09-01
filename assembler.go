@@ -8,6 +8,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/rotisserie/eris"
 )
 
 var opCodeMap = map[string]byte{
@@ -39,7 +41,7 @@ var opCodeMap = map[string]byte{
 	"SPAWN": 0x70,
 	"YIELD": 0x71,
 	"WAIT":  0x72,
-	"HALT":  0xFF,
+	"KILL":  0xFF,
 }
 
 func assemble(path string) ([]byte, error) {
@@ -115,7 +117,7 @@ func assemble(path string) ([]byte, error) {
 
 		value, err := assembleLine(line, labels)
 		if err != nil {
-			return nil, fmt.Errorf("error in line %d: %s", counter, err.Error())
+			return nil, eris.Wrapf(err, "error in line %d", counter)
 		}
 		if err = binary.Write(writer, binary.LittleEndian, value); err != nil {
 			return nil, err
@@ -133,7 +135,7 @@ func assembleLine(line string, labels map[string]uint32) (uint32, error) {
 	opCode, ok := opCodeMap[parts[0]]
 
 	if !ok {
-		return 0, fmt.Errorf("OpCode '%s' not found", parts[0])
+		return 0, eris.New(fmt.Sprintf("OpCode '%s' not found", parts[0]))
 	}
 
 	// no operand
@@ -149,7 +151,7 @@ func assembleLine(line string, labels map[string]uint32) (uint32, error) {
 
 	// check for size if numeral operand could not be parsed
 	if _, err := strconv.ParseInt(arg, 0, 32); err == nil {
-		return 0, fmt.Errorf("%s exceeds operand size", arg)
+		return 0, eris.New(fmt.Sprintf("%s exceeds operand size", arg))
 	}
 
 	// label operand
@@ -162,5 +164,5 @@ func assembleLine(line string, labels map[string]uint32) (uint32, error) {
 		return 0xFFFFFF<<8 | uint32(opCode), nil
 	}
 
-	return 0, fmt.Errorf("unknown operand '%s'", arg)
+	return 0, eris.New(fmt.Sprintf("unknown operand '%s'", arg))
 }

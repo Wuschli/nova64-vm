@@ -35,8 +35,8 @@ The 4 bytes of an instruction are stored in memory in the following way: `<OPCOD
 | `NOT`           | 0x23         | Logical NOT of top value                                                                                 |
 | `CMP`           | 0x30         | Compare top two values, set X: -1 <, 0 ==, 1 >                                                           |
 | `JMP <label>`   | 0x40         | Jump to label or address from stack (`TOP`)                                                              |
-| `CALL <label>`  | 0x41         | Call subroutine at label or address from stack (`TOP`)                                                   |
-| `RET`           | 0x42         | Return from subroutine                                                                                   |
+| `CALL <label>`  | 0x41         | Push the current IP to stack and jump to label or address from stack (`TOP`)                             |
+| `RET`           | 0x42         | Pop the return address from stack and set IP to it                                                       |
 | `JMPZ <label>`  | 0x43         | Jump if X == 0 (TOP supported)                                                                           |
 | `JMPLT <label>` | 0x44         | Jump if X < 0 (TOP supported)                                                                            |
 | `JMPGT <label>` | 0x45         | Jump if X > 0 (TOP supported)                                                                            |
@@ -47,7 +47,7 @@ The 4 bytes of an instruction are stored in memory in the following way: `<OPCOD
 | `SPAWN <label>` | 0x70         | Spawn new task at label or stack address (`TOP`)                                                         |
 | `YIELD`         | 0x71         | Yield CPU cycle to next task                                                                             |
 | `WAIT <port>`   | 0x72         | Wait for interrupt on port (`TOP` = port from stack)                                                     |
-| `HALT`          | 0xFF         | Halt the CPU                                                                                             |
+| `KILL`          | 0xFF         | Kill the active task. CPU is halted when all tasks are killed                                            |
 
 ---
 
@@ -59,7 +59,7 @@ The 4 bytes of an instruction are stored in memory in the following way: `<OPCOD
 | 5–8   | Display0–Display3, framebuffer and commands             |
 | 9     | Keyboard                                                |
 | 10    | Mouse / Pointer                                         |
-| 11–14 | Cartridge0–Cartridge3 (emulated storage)                |
+| 11–14 | Cartridge0–Cartridge3                                   |
 | 15    | Status: RAM size, task count, CPU version, display info |
 | 16    | Clock / Timer                                           |
 | 17    | Audio IN/OUT                                            |
