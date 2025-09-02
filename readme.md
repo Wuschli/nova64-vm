@@ -24,16 +24,16 @@ The 4 bytes of an instruction are stored in memory in the following way: `<OPCOD
 | `DROP`          | 0x02         | Remove TOS                                                                                               |
 | `DUP <offset>`  | 0x03         | Duplicate \[offset] of stack (default offset = 0) offset is encoded in upper 24bit or from stack (`TOP`) |
 | `SWAP`          | 0x04         | Swap top two stack values                                                                                |
-| `ADD`           | 0x10         | Pop A, Pop B, push A+B                                                                                   |
-| `SUB`           | 0x11         | Pop A, Pop B, push A-B                                                                                   |
-| `MUL`           | 0x12         | Pop A, Pop B, push A*B                                                                                   |
-| `DIV`           | 0x13         | Pop A, Pop B, push A/B                                                                                   |
-| `MOD`           | 0x14         | Pop A, Pop B, push A%B                                                                                   |
-| `AND`           | 0x20         | Pop A, Pop B, push A&B                                                                                   |
-| `OR`            | 0x21         | Pop A, Pop B, push A\|B                                                                                  |
-| `XOR`           | 0x22         | Pop A, Pop B, push A^B                                                                                   |
+| `ADD`           | 0x10         | Pop B, Pop A, push A+B                                                                                   |
+| `SUB`           | 0x11         | Pop B, Pop A, push A-B                                                                                   |
+| `MUL`           | 0x12         | Pop B, Pop A, push A*B                                                                                   |
+| `DIV`           | 0x13         | Pop B, Pop A, push A/B                                                                                   |
+| `MOD`           | 0x14         | Pop B, Pop A, push A%B                                                                                   |
+| `AND`           | 0x20         | Pop B, Pop A, push A&B                                                                                   |
+| `OR`            | 0x21         | Pop B, Pop A, push A\|B                                                                                  |
+| `XOR`           | 0x22         | Pop B, Pop A, push A^B                                                                                   |
 | `NOT`           | 0x23         | Logical NOT of top value                                                                                 |
-| `CMP`           | 0x30         | Compare top two values, set X: -1 <, 0 ==, 1 >                                                           |
+| `CMP`           | 0x30         | Pop B, Pop A, Compare top two values, set X: -1 <, 0 ==, 1 >                                             |
 | `JMP <label>`   | 0x40         | Jump to label or address from stack (`TOP`)                                                              |
 | `CALL <label>`  | 0x41         | Push the current IP to stack and jump to label or address from stack (`TOP`)                             |
 | `RET`           | 0x42         | Pop the return address from stack and set IP to it                                                       |

@@ -51,15 +51,15 @@ func swap(cpu *nova64Cpu, operand uint32) error {
 }
 
 func add(cpu *nova64Cpu, operand uint32) error {
-	a, err := cpu.pop()
-	if err != nil {
-		return eris.Wrapf(err, "instruction ADD failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
-	}
 	b, err := cpu.pop()
 	if err != nil {
 		return eris.Wrapf(err, "instruction ADD failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
-	err = cpu.push(a + b)
+	a, err := cpu.pop()
+	if err != nil {
+		return eris.Wrapf(err, "instruction ADD failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
+	}
+	err = cpu.push(uint32(int32(a) + int32(b)))
 	if err != nil {
 		return eris.Wrapf(err, "instruction ADD failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
@@ -67,15 +67,15 @@ func add(cpu *nova64Cpu, operand uint32) error {
 }
 
 func sub(cpu *nova64Cpu, operand uint32) error {
-	a, err := cpu.pop()
-	if err != nil {
-		return eris.Wrapf(err, "instruction SUB failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
-	}
 	b, err := cpu.pop()
 	if err != nil {
 		return eris.Wrapf(err, "instruction SUB failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
-	err = cpu.push(a - b)
+	a, err := cpu.pop()
+	if err != nil {
+		return eris.Wrapf(err, "instruction SUB failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
+	}
+	err = cpu.push(uint32(int32(a) - int32(b)))
 	if err != nil {
 		return eris.Wrapf(err, "instruction SUB failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
@@ -83,15 +83,15 @@ func sub(cpu *nova64Cpu, operand uint32) error {
 }
 
 func mul(cpu *nova64Cpu, operand uint32) error {
-	a, err := cpu.pop()
-	if err != nil {
-		return eris.Wrapf(err, "instruction MUL failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
-	}
 	b, err := cpu.pop()
 	if err != nil {
 		return eris.Wrapf(err, "instruction MUL failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
-	err = cpu.push(a * b)
+	a, err := cpu.pop()
+	if err != nil {
+		return eris.Wrapf(err, "instruction MUL failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
+	}
+	err = cpu.push(uint32(int32(a) * int32(b)))
 	if err != nil {
 		return eris.Wrapf(err, "instruction MUL failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
@@ -99,15 +99,15 @@ func mul(cpu *nova64Cpu, operand uint32) error {
 }
 
 func div(cpu *nova64Cpu, operand uint32) error {
-	a, err := cpu.pop()
-	if err != nil {
-		return eris.Wrapf(err, "instruction DIV failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
-	}
 	b, err := cpu.pop()
 	if err != nil {
 		return eris.Wrapf(err, "instruction DIV failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
-	err = cpu.push(a / b)
+	a, err := cpu.pop()
+	if err != nil {
+		return eris.Wrapf(err, "instruction DIV failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
+	}
+	err = cpu.push(uint32(int32(a) / int32(b)))
 	if err != nil {
 		return eris.Wrapf(err, "instruction DIV failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
@@ -115,15 +115,15 @@ func div(cpu *nova64Cpu, operand uint32) error {
 }
 
 func mod(cpu *nova64Cpu, operand uint32) error {
-	a, err := cpu.pop()
-	if err != nil {
-		return eris.Wrapf(err, "instruction MOD failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
-	}
 	b, err := cpu.pop()
 	if err != nil {
 		return eris.Wrapf(err, "instruction MOD failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
-	err = cpu.push(a % b)
+	a, err := cpu.pop()
+	if err != nil {
+		return eris.Wrapf(err, "instruction MOD failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
+	}
+	err = cpu.push(uint32(int32(a) % int32(b)))
 	if err != nil {
 		return eris.Wrapf(err, "instruction MOD failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
@@ -131,11 +131,11 @@ func mod(cpu *nova64Cpu, operand uint32) error {
 }
 
 func and(cpu *nova64Cpu, operand uint32) error {
-	a, err := cpu.pop()
+	b, err := cpu.pop()
 	if err != nil {
 		return eris.Wrapf(err, "instruction AND failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
-	b, err := cpu.pop()
+	a, err := cpu.pop()
 	if err != nil {
 		return eris.Wrapf(err, "instruction AND failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
@@ -147,11 +147,11 @@ func and(cpu *nova64Cpu, operand uint32) error {
 }
 
 func or(cpu *nova64Cpu, operand uint32) error {
-	a, err := cpu.pop()
+	b, err := cpu.pop()
 	if err != nil {
 		return eris.Wrapf(err, "instruction OR failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
-	b, err := cpu.pop()
+	a, err := cpu.pop()
 	if err != nil {
 		return eris.Wrapf(err, "instruction OR failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
@@ -163,11 +163,11 @@ func or(cpu *nova64Cpu, operand uint32) error {
 }
 
 func xor(cpu *nova64Cpu, operand uint32) error {
-	a, err := cpu.pop()
+	b, err := cpu.pop()
 	if err != nil {
 		return eris.Wrapf(err, "instruction XOR failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
-	b, err := cpu.pop()
+	a, err := cpu.pop()
 	if err != nil {
 		return eris.Wrapf(err, "instruction XOR failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
@@ -191,16 +191,16 @@ func not(cpu *nova64Cpu, operand uint32) error {
 }
 
 func cmp(cpu *nova64Cpu, operand uint32) error {
-	a, err := cpu.pop()
-	if err != nil {
-		return eris.Wrapf(err, "instruction CMP failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
-	}
 	b, err := cpu.pop()
 	if err != nil {
 		return eris.Wrapf(err, "instruction CMP failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 	}
+	a, err := cpu.pop()
+	if err != nil {
+		return eris.Wrapf(err, "instruction CMP failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
+	}
 
-	cpu.ActiveTask().X = int32(comp.Compare(a, b))
+	cpu.ActiveTask().X = int32(comp.Compare(int32(a), int32(b)))
 	return nil
 }
 
