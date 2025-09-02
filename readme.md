@@ -9,7 +9,7 @@ The Nova64 is a 32-bit stack-oriented processor designed for modular computing p
 
 - **Word size:** 32-bit  
 - **Stack depth:** 1024 entries recommended  
-- **Registers:** IP (Instruction Pointer), SP (Stack Pointer), X (Compare Register), FLAGS (status flags)  
+- **Registers:** IP (Instruction Pointer), SP (Stack Pointer), C (Compare Register), FLAGS (status flags), X (Exception Info)
 - **Ports:** Generic LINK, Displays, Input devices, Cartridges, Audio/Video, Status/Clock  
 
 ---
@@ -33,13 +33,13 @@ The 4 bytes of an instruction are stored in memory in the following way: `<OPCOD
 | `OR`            | 0x21         | Pop B, Pop A, push A\|B                                                                                  |
 | `XOR`           | 0x22         | Pop B, Pop A, push A^B                                                                                   |
 | `NOT`           | 0x23         | Logical NOT of top value                                                                                 |
-| `CMP`           | 0x30         | Pop B, Pop A, Compare top two values, set X: -1 <, 0 ==, 1 >                                             |
+| `CMP`           | 0x30         | Pop B, Pop A, Compare top two values, set C: -1 <, 0 ==, 1 >                                             |
 | `JMP <label>`   | 0x40         | Jump to label or address from stack (`TOP`)                                                              |
 | `CALL <label>`  | 0x41         | Push the current IP to stack and jump to label or address from stack (`TOP`)                             |
 | `RET`           | 0x42         | Pop the return address from stack and set IP to it                                                       |
-| `JMPZ <label>`  | 0x43         | Jump if X == 0 (TOP supported)                                                                           |
-| `JMPLT <label>` | 0x44         | Jump if X < 0 (TOP supported)                                                                            |
-| `JMPGT <label>` | 0x45         | Jump if X > 0 (TOP supported)                                                                            |
+| `JMPZ <label>`  | 0x43         | Jump if C == 0 (TOP supported)                                                                           |
+| `JMPLT <label>` | 0x44         | Jump if C < 0 (TOP supported)                                                                            |
+| `JMPGT <label>` | 0x45         | Jump if C > 0 (TOP supported)                                                                            |
 | `FETCH <addr>`  | 0x50         | Push value from memory (TOP = stack)                                                                     |
 | `STORE <addr>`  | 0x51         | Store top of stack to memory (TOP = stack)                                                               |
 | `IN <port>`     | 0x60         | Read from port (TOP = port from stack)                                                                   |
@@ -67,6 +67,15 @@ The 4 bytes of an instruction are stored in memory in the following way: `<OPCOD
 | 19-32 | Reserved for future expansion                           |
 
 ---
+
+## Exception Codes
+| Code (Hex) | Beschreibung                 |
+| ---------- | ---------------------------- |
+| `0x01`     | Division by Zero             |
+| `0x02`     | Invalid Instruction          |
+| `0x03`     | Invalid Memory Access        |
+| `0xFF`     | User-defined Trap (Software) |
+
 
 ## Notes on TOP
 

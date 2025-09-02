@@ -41,6 +41,8 @@ var opCodeMap = map[string]byte{
 	"SPAWN": 0x70,
 	"YIELD": 0x71,
 	"WAIT":  0x72,
+	"IRET":  0x80,
+	"TRAP":  0x81,
 	"KILL":  0xFF,
 }
 

@@ -11,7 +11,7 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-var instructionMap = map[byte]func(*nova64Cpu, uint32) error{
+var instructionMap = map[byte]func(*nova64Cpu) error{
 	0x00: noop,  // NOOP
 	0x01: push,  // PUSH
 	0x02: drop,  // DROP
@@ -40,6 +40,8 @@ var instructionMap = map[byte]func(*nova64Cpu, uint32) error{
 	0x70: spawn, // SPAWN
 	0x71: yield, // YIELD
 	0x72: wait,  // WAIT
+	0x80: iret,  // IRET
+	0x81: trap,  // trap
 	0xFF: kill,  // KILL
 }
 
@@ -103,9 +105,8 @@ func (cpu *nova64Cpu) Tick() {
 
 	op := cpu.Ram[task.IP]
 	opCode := byte(op & 0xFF)
-	operand := (op >> 8) & 0x00FFFFFF
 	instructionFunc := instructionMap[opCode]
-	err := instructionFunc(cpu, operand)
+	err := instructionFunc(cpu)
 	if err != nil {
 		log.Fatalln(eris.ToString(err, true))
 		cpu.ActiveTask().killed = true
@@ -160,6 +161,20 @@ func (cpu *nova64Cpu) SpawnTask(ip uint32) {
 	cpu.nextTaskId++
 	cpu.Tasks = append(cpu.Tasks, &task)
 	cpu.usedStackOffsets[&task] = offset
+}
+
+func (cpu *nova64Cpu) fetchOperand() (uint32, error) {
+	op := cpu.Ram[cpu.ActiveTask().IP]
+	operand := (op >> 8) & 0x00FFFFFF
+
+	if operand == TOP {
+		var err error = nil
+		operand, err = cpu.pop()
+		if err != nil {
+			return 0, eris.Wrap(err, "retrieving TOP operand failed")
+		}
+	}
+	return operand, nil
 }
 
 func (cpu *nova64Cpu) push(value uint32) error {
@@ -250,4 +265,8 @@ func parseImage(data []byte, ram []uint32) (map[string]uint32, error) {
 		}
 	}
 	return labels, nil
+}
+
+func (cpu *nova64Cpu) wrapError(err error, instruction string) error {
+	return eris.Wrapf(err, "instruction %s failed at [%03d] %#08x", instruction, cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 }
