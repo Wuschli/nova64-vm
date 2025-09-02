@@ -18,17 +18,17 @@ func noop(cpu *nova64Cpu) error {
 func push(cpu *nova64Cpu) error {
 	operand, err := cpu.fetchOperand()
 	if err != nil {
-		return cpu.wrapError(err, "PUSH")
+		return cpu.wrapError(err)
 	}
 	if err := cpu.push(operand); err != nil {
-		return cpu.wrapError(err, "PUSH")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
 
 func drop(cpu *nova64Cpu) error {
 	if err := cpu.drop(); err != nil {
-		return cpu.wrapError(err, "PUSH")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
@@ -36,17 +36,17 @@ func drop(cpu *nova64Cpu) error {
 func dup(cpu *nova64Cpu) error {
 	operand, err := cpu.fetchOperand()
 	if err != nil {
-		return cpu.wrapError(err, "DUP")
+		return cpu.wrapError(err)
 	}
 	if err := cpu.dup(operand); err != nil {
-		return cpu.wrapError(err, "DUP")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
 
 func swap(cpu *nova64Cpu) error {
 	if err := cpu.swap(); err != nil {
-		return cpu.wrapError(err, "SAWP")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
@@ -54,15 +54,15 @@ func swap(cpu *nova64Cpu) error {
 func add(cpu *nova64Cpu) error {
 	b, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "ADD")
+		return cpu.wrapError(err)
 	}
 	a, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "ADD")
+		return cpu.wrapError(err)
 	}
 	err = cpu.push(uint32(int32(a) + int32(b)))
 	if err != nil {
-		return cpu.wrapError(err, "ADD")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
@@ -70,15 +70,15 @@ func add(cpu *nova64Cpu) error {
 func sub(cpu *nova64Cpu) error {
 	b, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "SUB")
+		return cpu.wrapError(err)
 	}
 	a, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "SUB")
+		return cpu.wrapError(err)
 	}
 	err = cpu.push(uint32(int32(a) - int32(b)))
 	if err != nil {
-		return cpu.wrapError(err, "SUB")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
@@ -86,15 +86,15 @@ func sub(cpu *nova64Cpu) error {
 func mul(cpu *nova64Cpu) error {
 	b, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "MUL")
+		return cpu.wrapError(err)
 	}
 	a, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "MUL")
+		return cpu.wrapError(err)
 	}
 	err = cpu.push(uint32(int32(a) * int32(b)))
 	if err != nil {
-		return cpu.wrapError(err, "MUL")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
@@ -102,15 +102,15 @@ func mul(cpu *nova64Cpu) error {
 func div(cpu *nova64Cpu) error {
 	b, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "DIV")
+		return cpu.wrapError(err)
 	}
 	a, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "DIV")
+		return cpu.wrapError(err)
 	}
 	err = cpu.push(uint32(int32(a) / int32(b)))
 	if err != nil {
-		return cpu.wrapError(err, "DIV")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
@@ -118,15 +118,15 @@ func div(cpu *nova64Cpu) error {
 func mod(cpu *nova64Cpu) error {
 	b, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "MOD")
+		return cpu.wrapError(err)
 	}
 	a, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "MOD")
+		return cpu.wrapError(err)
 	}
 	err = cpu.push(uint32(int32(a) % int32(b)))
 	if err != nil {
-		return cpu.wrapError(err, "MOD")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
@@ -134,15 +134,15 @@ func mod(cpu *nova64Cpu) error {
 func and(cpu *nova64Cpu) error {
 	b, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "AND")
+		return cpu.wrapError(err)
 	}
 	a, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "AND")
+		return cpu.wrapError(err)
 	}
 	err = cpu.push(a & b)
 	if err != nil {
-		return cpu.wrapError(err, "AND")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
@@ -150,15 +150,15 @@ func and(cpu *nova64Cpu) error {
 func or(cpu *nova64Cpu) error {
 	b, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "OR")
+		return cpu.wrapError(err)
 	}
 	a, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "OR")
+		return cpu.wrapError(err)
 	}
 	err = cpu.push(a | b)
 	if err != nil {
-		return cpu.wrapError(err, "OR")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
@@ -166,15 +166,15 @@ func or(cpu *nova64Cpu) error {
 func xor(cpu *nova64Cpu) error {
 	b, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "XOR")
+		return cpu.wrapError(err)
 	}
 	a, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "XOR")
+		return cpu.wrapError(err)
 	}
 	err = cpu.push(a ^ b)
 	if err != nil {
-		return cpu.wrapError(err, "XOR")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
@@ -182,11 +182,11 @@ func xor(cpu *nova64Cpu) error {
 func not(cpu *nova64Cpu) error {
 	a, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "NOT")
+		return cpu.wrapError(err)
 	}
 	err = cpu.push(^a)
 	if err != nil {
-		return cpu.wrapError(err, "NOT")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
@@ -194,11 +194,11 @@ func not(cpu *nova64Cpu) error {
 func cmp(cpu *nova64Cpu) error {
 	b, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "CMP")
+		return cpu.wrapError(err)
 	}
 	a, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "CMP")
+		return cpu.wrapError(err)
 	}
 
 	cpu.ActiveTask().X = int32(comp.Compare(int32(a), int32(b)))
@@ -208,7 +208,7 @@ func cmp(cpu *nova64Cpu) error {
 func jmp(cpu *nova64Cpu) error {
 	operand, err := cpu.fetchOperand()
 	if err != nil {
-		return cpu.wrapError(err, "JMP")
+		return cpu.wrapError(err)
 	}
 	cpu.ActiveTask().IP = operand - 1
 	// fmt.Printf("Jump to %#08x\n", operand)
@@ -218,12 +218,12 @@ func jmp(cpu *nova64Cpu) error {
 func call(cpu *nova64Cpu) error {
 	operand, err := cpu.fetchOperand()
 	if err != nil {
-		return cpu.wrapError(err, "CALL")
+		return cpu.wrapError(err)
 	}
 
 	err = cpu.push(cpu.ActiveTask().IP)
 	if err != nil {
-		return cpu.wrapError(err, "CALL")
+		return cpu.wrapError(err)
 	}
 
 	cpu.ActiveTask().IP = operand - 1
@@ -233,7 +233,7 @@ func call(cpu *nova64Cpu) error {
 func ret(cpu *nova64Cpu) error {
 	value, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "RET")
+		return cpu.wrapError(err)
 	}
 	cpu.ActiveTask().IP = value - 1
 	return nil
@@ -242,7 +242,7 @@ func ret(cpu *nova64Cpu) error {
 func jmpz(cpu *nova64Cpu) error {
 	operand, err := cpu.fetchOperand()
 	if err != nil {
-		return cpu.wrapError(err, "JMPZ")
+		return cpu.wrapError(err)
 	}
 	if cpu.ActiveTask().X == 0 {
 		cpu.ActiveTask().IP = operand - 1
@@ -254,7 +254,7 @@ func jmpz(cpu *nova64Cpu) error {
 func jmplt(cpu *nova64Cpu) error {
 	operand, err := cpu.fetchOperand()
 	if err != nil {
-		return cpu.wrapError(err, "JMPLT")
+		return cpu.wrapError(err)
 	}
 	if cpu.ActiveTask().X < 0 {
 		cpu.ActiveTask().IP = operand - 1
@@ -266,7 +266,7 @@ func jmplt(cpu *nova64Cpu) error {
 func jmpgt(cpu *nova64Cpu) error {
 	operand, err := cpu.fetchOperand()
 	if err != nil {
-		return cpu.wrapError(err, "JMPGT")
+		return cpu.wrapError(err)
 	}
 	if cpu.ActiveTask().X > 0 {
 		cpu.ActiveTask().IP = operand - 1
@@ -278,15 +278,15 @@ func jmpgt(cpu *nova64Cpu) error {
 func fetch(cpu *nova64Cpu) error {
 	operand, err := cpu.fetchOperand()
 	if err != nil {
-		return cpu.wrapError(err, "FETCH")
+		return cpu.wrapError(err)
 	}
 	if operand >= uint32(len(cpu.Ram)) {
-		return cpu.wrapError(eris.New(fmt.Sprintf("available memory: %#08x", len(cpu.Ram))), "FETCH")
+		return cpu.wrapError(eris.New(fmt.Sprintf("available memory: %#08x", len(cpu.Ram))))
 	}
 	value := cpu.Ram[operand]
 
 	if err := cpu.push(value); err != nil {
-		return cpu.wrapError(err, "FETCH")
+		return cpu.wrapError(err)
 	}
 	return nil
 }
@@ -294,16 +294,16 @@ func fetch(cpu *nova64Cpu) error {
 func store(cpu *nova64Cpu) error {
 	operand, err := cpu.fetchOperand()
 	if err != nil {
-		return cpu.wrapError(err, "STORE")
+		return cpu.wrapError(err)
 	}
 
 	if operand >= uint32(len(cpu.Ram)) {
-		return cpu.wrapError(eris.New(fmt.Sprintf("available memory: %#08x", len(cpu.Ram))), "STORE")
+		return cpu.wrapError(eris.New(fmt.Sprintf("available memory: %#08x", len(cpu.Ram))))
 	}
 
 	value, err := cpu.pop()
 	if err != nil {
-		return cpu.wrapError(err, "STORE")
+		return cpu.wrapError(err)
 	}
 
 	cpu.Ram[operand] = value
@@ -321,7 +321,7 @@ func out(cpu *nova64Cpu) error {
 func spawn(cpu *nova64Cpu) error {
 	operand, err := cpu.fetchOperand()
 	if err != nil {
-		return cpu.wrapError(err, "SPAWN")
+		return cpu.wrapError(err)
 	}
 	cpu.SpawnTask(operand)
 	return nil
@@ -335,7 +335,7 @@ func yield(cpu *nova64Cpu) error {
 func wait(cpu *nova64Cpu) error {
 	operand, err := cpu.fetchOperand()
 	if err != nil {
-		return cpu.wrapError(err, "WAIT")
+		return cpu.wrapError(err)
 	}
 	cpu.ActiveTask().Waiting = operand
 	cpu.yield()

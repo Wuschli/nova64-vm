@@ -6,7 +6,9 @@ import (
 	"errors"
 	"log"
 	"maps"
+	"runtime"
 	"slices"
+	"strings"
 
 	"github.com/rotisserie/eris"
 )
@@ -267,6 +269,12 @@ func parseImage(data []byte, ram []uint32) (map[string]uint32, error) {
 	return labels, nil
 }
 
-func (cpu *nova64Cpu) wrapError(err error, instruction string) error {
-	return eris.Wrapf(err, "instruction %s failed at [%03d] %#08x", instruction, cpu.ActiveTask().ID, cpu.ActiveTask().IP)
+func (cpu *nova64Cpu) wrapError(err error) error {
+	pc, _, _, ok := runtime.Caller(1)
+	details := runtime.FuncForPC(pc)
+	if ok && details != nil {
+		name := strings.TrimPrefix(strings.ToUpper(details.Name()), "MAIN.")
+		return eris.Wrapf(err, "instruction %s failed at [%03d] %#08x", name, cpu.ActiveTask().ID, cpu.ActiveTask().IP)
+	}
+	return eris.Wrapf(err, "instruction failed at [%03d] %#08x", cpu.ActiveTask().ID, cpu.ActiveTask().IP)
 }
